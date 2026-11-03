@@ -122,7 +122,7 @@ object LcdFace {
         if (step < 6f) cv.radialLine(CX, CY, SEC_ZERO_DEG + 60 * step, 106f, 91f, stroke(RED, 3.5f))
         val start = SEC_ZERO_DEG + 50 * step - 90f
         cv.drawArc(oval(CX, CY, 108f), start, 10 * step, false, stroke(RED, 5f).apply { setShadowLayer(6f, 0f, 0f, RED) })
-        cv.textCentered("×10s", CX, 206f, textPaint(LABEL, 14f, SANS_BOLD).apply { letterSpacing = .1f })
+        cv.textCentered("sec", CX, 206f, textPaint(LABEL, 14f, SANS_BOLD).apply { letterSpacing = .1f })
     }
 
     private fun leftColumn(cv: Canvas, s: DashState) {

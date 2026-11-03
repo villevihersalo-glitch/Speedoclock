@@ -203,10 +203,10 @@ object ChronoFace {
             val major = sec % 5 == 0
             cv.radialLine(CX, CY, deg, 256f, if (major) 226f else 243f, stroke(CREAM, if (major) 5f else 2.2f))
         }
-        val num = textPaint(CREAM, 50f, SANS_BOLD)
+        val num = textPaint(CREAM, 40f, SANS_BOLD)
         for (k in 0..(if (full) 5 else 6)) {
             val deg = SEC_ZERO_DEG + k * 10 * step
-            cv.textCentered(k.toString(), ax(CX, 192f, deg), ay(CY, 192f, deg), num)
+            cv.textCentered((k * 10).toString(), ax(CX, 190f, deg), ay(CY, 190f, deg), num)
         }
 
         // Gear window.
@@ -225,15 +225,23 @@ object ChronoFace {
         }
         cv.textCentered("TOP GEAR", CX, 437f + gy * 0.6f, topP)
 
-        // Head-light tell-tale (left) and date window (right).
-        cv.headlightIcon(392f, 500f, 40f, if (s.headlights) c(0xFF3D7BFF) else c(0x26F4F0E6))
-        val dx = if (full) 0f else -22f // keep clear of the "5" in 270° mode
+        // Head-light tell-tale beside the gear window.
+        cv.headlightIcon(414f, 383f + gy, 34f, if (s.headlights) c(0xFF3D7BFF) else c(0x26F4F0E6))
+        val dx = if (full) 0f else -22f // keep clear of the "50" in 270° mode
         val date = RectF(580f + dx, 481f, 680f + dx, 519f)
         cv.drawRoundRect(date, 5f, 5f, fill(c(0xFFF2EADA)))
         cv.drawRoundRect(date, 5f, 5f, stroke(c(0xFF8E8578), 3f))
-        cv.textCentered(s.dateShort, 630f + dx, 500f, textPaint(c(0xFF151210), 21f, MONO_BOLD))
+        val windowText = textPaint(c(0xFF151210), 21f, MONO_BOLD)
+        cv.textCentered(s.dateShort, 630f + dx, 500f, windowText)
 
-        cv.textCentered("×10 SEC", CX, 553f, textPaint(c(0xB3F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .12f })
+        // Month and year windows, left of the hub.
+        for ((r, txt) in listOf(RectF(336f, 481f, 398f, 519f) to s.month, RectF(402f, 481f, 464f, 519f) to s.year)) {
+            cv.drawRoundRect(r, 5f, 5f, fill(c(0xFFF2EADA)))
+            cv.drawRoundRect(r, 5f, 5f, stroke(c(0xFF8E8578), 3f))
+            cv.textCentered(txt, r.centerX(), r.centerY(), windowText)
+        }
+
+        cv.textCentered("SEC", CX, 553f, textPaint(c(0xB3F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .12f })
         cv.textCentered("SPEEDOCLOCK", CX, 577f, textPaint(c(0xFFD9A441), 20f, SERIF_BOLD_ITALIC).apply { letterSpacing = .14f })
 
         fuelGauge(cv, s, 500f, 662f)

@@ -26,6 +26,10 @@ data class DashState(
     val headlights: Boolean,
     val dateLong: String,
     val dateShort: String,
+    /** "NOV" */
+    val month: String,
+    /** "2026" */
+    val year: String,
     /** Time left of the working day ("2:18"), or "FREE". */
     val workLeft: String,
 ) {
@@ -60,6 +64,8 @@ data class DashState(
                 headlights = t.hour >= 18 || t.hour < 6,
                 dateLong = String.format(Locale.US, "%s %02d.%02d", dow, t.dayOfMonth, t.monthValue),
                 dateShort = String.format(Locale.US, "%s %d", dow, t.dayOfMonth),
+                month = t.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.US).uppercase(Locale.US),
+                year = t.year.toString(),
                 workLeft = if (atWork) String.format(Locale.US, "%d:%02d", left / 60, left % 60) else "FREE",
             )
         }
