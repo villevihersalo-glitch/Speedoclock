@@ -206,12 +206,11 @@ object ChronoFace {
         val num = textPaint(CREAM, 40f, SANS_BOLD)
         for (k in 0..(if (full) 5 else 6)) {
             val deg = SEC_ZERO_DEG + k * 10 * step
-            cv.textCentered((k * 10).toString(), ax(CX, 190f, deg), ay(CY, 190f, deg), num)
+            cv.textCentered((k * 10).toString(), ax(CX, 198f, deg), ay(CY, 198f, deg), num)
         }
 
         // Gear window.
         val gy = if (full) 0f else 10f
-        if (full) cv.textCentered("GEAR", CX, 336f, textPaint(c(0x99F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .25f })
         val win = RectF(462f, 352f + gy, 538f, 414f + gy)
         cv.drawRoundRect(win, 10f, 10f, fill(c(0xFF060906)))
         cv.drawRoundRect(win, 10f, 10f, stroke(c(0xFF6B655C), 3f))
@@ -235,7 +234,7 @@ object ChronoFace {
         cv.textCentered(s.dateShort, 630f + dx, 500f, windowText)
 
         // Month and year windows, left of the hub.
-        for ((r, txt) in listOf(RectF(336f, 481f, 398f, 519f) to s.month, RectF(402f, 481f, 464f, 519f) to s.year)) {
+        for ((r, txt) in listOf(RectF(340f, 481f, 398f, 519f) to s.month, RectF(402f, 481f, 464f, 519f) to s.year)) {
             cv.drawRoundRect(r, 5f, 5f, fill(c(0xFFF2EADA)))
             cv.drawRoundRect(r, 5f, 5f, stroke(c(0xFF8E8578), 3f))
             cv.textCentered(txt, r.centerX(), r.centerY(), windowText)
