@@ -26,6 +26,8 @@ data class DashState(
     val headlights: Boolean,
     val dateLong: String,
     val dateShort: String,
+    /** ISO week, "WK 45" */
+    val week: String,
     /** "NOV" */
     val month: String,
     /** "2026" */
@@ -64,6 +66,7 @@ data class DashState(
                 headlights = t.hour >= 18 || t.hour < 6,
                 dateLong = String.format(Locale.US, "%s %02d.%02d", dow, t.dayOfMonth, t.monthValue),
                 dateShort = String.format(Locale.US, "%s %d", dow, t.dayOfMonth),
+                week = "WK " + t.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR),
                 month = t.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.US).uppercase(Locale.US),
                 year = t.year.toString(),
                 workLeft = if (atWork) String.format(Locale.US, "%d:%02d", left / 60, left % 60) else "FREE",

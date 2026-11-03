@@ -226,15 +226,15 @@ object ChronoFace {
 
         // Head-light tell-tale beside the gear window.
         cv.headlightIcon(414f, 383f + gy, 34f, if (s.headlights) c(0xFF3D7BFF) else c(0x26F4F0E6))
-        val dx = if (full) 0f else -22f // keep clear of the "50" in 270° mode
-        val date = RectF(580f + dx, 481f, 680f + dx, 519f)
-        cv.drawRoundRect(date, 5f, 5f, fill(c(0xFFF2EADA)))
-        cv.drawRoundRect(date, 5f, 5f, stroke(c(0xFF8E8578), 3f))
-        val windowText = textPaint(c(0xFF151210), 21f, MONO_BOLD)
-        cv.textCentered(s.dateShort, 630f + dx, 500f, windowText)
-
-        // Month and year windows, left of the hub.
-        for ((r, txt) in listOf(RectF(340f, 481f, 398f, 519f) to s.month, RectF(402f, 481f, 464f, 519f) to s.year)) {
+        // Windows: day and week on the left, month and year on the right.
+        val windowText = textPaint(c(0xFF151210), 20f, MONO_BOLD)
+        val windows = listOf(
+            RectF(352f, 462f, 452f, 498f) to s.dateShort,
+            RectF(352f, 504f, 452f, 540f) to s.week,
+            RectF(548f, 462f, 648f, 498f) to s.month,
+            RectF(548f, 504f, 648f, 540f) to s.year,
+        )
+        for ((r, txt) in windows) {
             cv.drawRoundRect(r, 5f, 5f, fill(c(0xFFF2EADA)))
             cv.drawRoundRect(r, 5f, 5f, stroke(c(0xFF8E8578), 3f))
             cv.textCentered(txt, r.centerX(), r.centerY(), windowText)
