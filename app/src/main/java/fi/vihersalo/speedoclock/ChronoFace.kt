@@ -86,33 +86,45 @@ object ChronoFace {
         // 24 h gauge bar: fills clockwise from 24 at the top.
         val sweep = s.minuteOfDay / 1440f * 360f
         val sun = s.sunElev
-        val barR: Float
-        val barW: Float
         if (sun != null) {
-            // Outer half: the sky through the day (night, blue hour, golden hour, daylight).
+            // The sky through the day: night, blue hour, golden hour, daylight.
             val step = 360f / Sun.STEPS
             for (i in 0 until Sun.STEPS) {
                 val col = Sun.skyColor((sun[i] + sun[i + 1]) / 2f)
-                cv.drawArc(oval(CX, CY, 457f), -90f + i * step, step + 0.4f, false, stroke(col, 10f))
+                cv.drawArc(oval(CX, CY, 455f), -90f + i * step, step + 0.4f, false, stroke(col, 20f))
             }
-            cv.drawCircle(CX, CY, 452f, stroke(c(0x66301A08), 1.5f))
-            barR = 447f; barW = 9f
+            // Hours still to come sit a little in shadow, so the band also reads as progress.
+            if (sweep < 360f) {
+                cv.drawArc(oval(CX, CY, 455f), -90f + sweep, 360f - sweep, false, stroke(c(0x59000000), 20f))
+            }
+            cv.drawCircle(CX, CY, 465f, stroke(c(0x99301A08), 1.5f))
+            cv.drawCircle(CX, CY, 445f, stroke(c(0x99301A08), 1.5f))
+            // Elapsed day as a thin red line just inside the sky.
+            cv.drawCircle(CX, CY, 440f, stroke(c(0x33301A08), 5f))
+            if (sweep > 0f) {
+                cv.drawArc(oval(CX, CY, 440f), -90f, sweep, false, stroke(c(0xFFB8261A), 5f).apply {
+                    setShadowLayer(5f, 0f, 0f, c(0xAAFF3A1A))
+                })
+            }
         } else {
-            barR = 452f; barW = 18f
+            cv.drawCircle(CX, CY, 452f, stroke(c(0x33301A08), 18f))
+            if (sweep > 0f) {
+                cv.drawArc(oval(CX, CY, 452f), -90f, sweep, false, stroke(c(0xFFB8261A), 18f).apply {
+                    setShadowLayer(8f, 0f, 0f, c(0xAAFF3A1A))
+                })
+                cv.drawArc(oval(CX, CY, 457f), -90f, sweep, false, stroke(c(0x55FFFFFF), 3f))
+            }
         }
-        cv.drawCircle(CX, CY, barR, stroke(c(0x33301A08), barW))
         if (sweep > 0f) {
-            cv.drawArc(oval(CX, CY, barR), -90f, sweep, false, stroke(c(0xFFB8261A), barW).apply {
-                setShadowLayer(8f, 0f, 0f, c(0xAAFF3A1A))
-            })
-            cv.drawArc(oval(CX, CY, barR + barW / 2 - 2f), -90f, sweep, false, stroke(c(0x55FFFFFF), 2.5f))
-            // bright "now" tip across both bands
-            cv.radialLine(CX, CY, sweep, 441f, 463f, stroke(c(0xFFFFFFFF), 4f).apply {
+            // bright "now" tip
+            cv.radialLine(CX, CY, sweep, 437f, 466f, stroke(c(0xFFFFFFFF), 4f).apply {
                 setShadowLayer(4f, 0f, 0f, c(0xAA000000))
             })
         }
-        cv.drawCircle(CX, CY, 442f, stroke(c(0xFF6E3C0E), 2f))
-        cv.drawCircle(CX, CY, 462f, stroke(c(0x886E3C0E), 1.5f))
+        if (sun == null) {
+            cv.drawCircle(CX, CY, 442f, stroke(c(0xFF6E3C0E), 2f))
+            cv.drawCircle(CX, CY, 462f, stroke(c(0x886E3C0E), 1.5f))
+        }
 
         // Ticks every 15 minutes.
         for (i in 0 until 96) {
@@ -121,7 +133,8 @@ object ChronoFace {
                 i % 2 == 0 -> 17f to 3f
                 else -> 9f to 2f
             }
-            cv.radialLine(CX, CY, i * 3.75f, 440f, 440f - len, stroke(INK, w))
+            val t0 = if (sun != null) 435f else 440f
+            cv.radialLine(CX, CY, i * 3.75f, t0, t0 - len, stroke(INK, w))
         }
 
         // Numerals 1..24.
