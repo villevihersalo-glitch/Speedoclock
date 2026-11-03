@@ -25,7 +25,7 @@ object LcdFace {
     const val SEC_ZERO_DEG = 225f
 
     /** Where the overlaid digital clock sits, in face units below the hub, and its text size. */
-    const val TIME_OFFSET_Y = 62f
+    const val TIME_OFFSET_Y = 54f
     const val TIME_TEXT_SIZE = 27f
 
     private val GHOST = c(0xFF1B2A45)

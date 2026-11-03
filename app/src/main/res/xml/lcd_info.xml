@@ -9,6 +9,6 @@
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_lcd"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/preview_lcd"
     android:description="@string/lcd_desc"
     android:widgetCategory="home_screen" />

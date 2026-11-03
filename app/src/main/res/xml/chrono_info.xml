@@ -9,6 +9,6 @@
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_chrono"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/preview_chrono"
     android:description="@string/chrono_desc"
     android:widgetCategory="home_screen" />
