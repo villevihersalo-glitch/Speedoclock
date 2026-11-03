@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/face"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no" />
+
+    <TextClock
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="22dp"
+        android:format12Hour="HH:mm:ss"
+        android:format24Hour="HH:mm:ss"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:includeFontPadding="false"
+        android:textColor="#FF5CFF7A"
+        android:shadowColor="#AA2BFF5A"
+        android:shadowRadius="8"
+        android:textSize="10sp" />
+
+    <AnalogClock
+        android:id="@+id/needle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:dial="@drawable/dial_wide"
+        android:hand_hour="@drawable/hand_none"
+        android:hand_minute="@drawable/hand_none"
+        android:hand_second="@drawable/needle_lcd" />
+
+    <ImageView
+        android:id="@+id/glare"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/glare_lcd"
+        android:importantForAccessibility="no" />
+</FrameLayout>

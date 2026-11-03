@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/face"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no" />
+
+    <AnalogClock
+        android:id="@+id/needle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:dial="@drawable/dial_square"
+        android:hand_hour="@drawable/hand_none"
+        android:hand_minute="@drawable/hand_none"
+        android:hand_second="@drawable/needle_chrono" />
+
+    <ImageView
+        android:id="@+id/glare"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/glare_chrono"
+        android:importantForAccessibility="no" />
+</FrameLayout>

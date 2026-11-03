@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Speedoclock</string>
+    <string name="chrono_name">Speedoclock Chrono</string>
+    <string name="lcd_name">Speedoclock LCD</string>
+    <string name="chrono_desc">Chrome gauge: hours ring, 60 minute LEDs, seconds tachometer</string>
+    <string name="lcd_desc">Bike LCD cluster: hour bar, minute dots, gear and fuel</string>
+</resources>

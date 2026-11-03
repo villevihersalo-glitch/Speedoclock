@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="1000dp" android:height="1000dp"
+    android:viewportWidth="1000" android:viewportHeight="1000">
+    <group android:rotation="225" android:pivotX="500" android:pivotY="500">
+        <!-- soft shadow -->
+        <path android:fillColor="#55000000"
+            android:pathData="M490,566 L497,246 L505,246 L512,566 Z" />
+        <!-- gold needle, two-tone bevel -->
+        <path android:fillColor="#FFFFDB80"
+            android:pathData="M491,562 L498.6,247 L500,243 L500,562 Z" />
+        <path android:fillColor="#FFC08425"
+            android:pathData="M500,562 L500,243 L501.4,247 L509,562 Z" />
+    </group>
+    <!-- hub cap -->
+    <path android:fillColor="#FF0B0B0B"
+        android:pathData="M468,500 a32,32 0 1,0 64,0 a32,32 0 1,0 -64,0 Z" />
+    <path android:pathData="M476,500 a24,24 0 1,0 48,0 a24,24 0 1,0 -48,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial"
+                android:centerX="492" android:centerY="491" android:gradientRadius="30"
+                android:startColor="#FFFFFFFF" android:centerColor="#FFB9B3A8"
+                android:endColor="#FF4E4A44" />
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#FF1A1A1A"
+        android:pathData="M494,500 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 Z" />
+</vector>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Glass highlight drawn above the needle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="1000dp" android:height="1000dp"
+    android:viewportWidth="1000" android:viewportHeight="1000">
+    <path android:pathData="M30,500 a470,470 0 1,0 940,0 a470,470 0 1,0 -940,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial"
+                android:centerX="330" android:centerY="250" android:gradientRadius="430"
+                android:startColor="#30FFFFFF" android:centerColor="#0CFFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M120,420 A390,390 0 0,1 420,120 A470,470 0 0,0 120,420 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear"
+                android:startX="120" android:startY="420" android:endX="420" android:endY="120"
+                android:startColor="#00FFFFFF" android:centerColor="#40FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+</vector>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:letterSpacing="0.18"
+            android:text="SPEEDOCLOCK"
+            android:textColor="@color/amber"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Your day as a dashboard"
+            android:textColor="#99FFFFFF"
+            android:textSize="14sp" />
+
+        <FrameLayout
+            android:id="@+id/chrono_box"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp">
+
+            <include layout="@layout/widget_chrono" />
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/add_chrono"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Add Chrono to home screen" />
+
+        <FrameLayout
+            android:id="@+id/lcd_box"
+            android:layout_width="340dp"
+            android:layout_height="170dp"
+            android:layout_marginTop="24dp">
+
+            <include layout="@layout/widget_lcd" />
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/add_lcd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Add LCD to home screen" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="YOUR DAY"
+            android:letterSpacing="0.15"
+            android:textColor="@color/amber"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Gears 1–5 run through your working hours on weekdays (5 = TOP GEAR). Outside work it's N. The fuel tank is full when your day starts and runs empty when it ends."
+            android:textColor="#B3FFFFFF"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/work_start"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/work_end"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/day_start"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/day_end"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="TIMING"
+            android:letterSpacing="0.15"
+            android:textColor="@color/amber"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/exact_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/exact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Allow exact timing" />
+    </LinearLayout>
+</ScrollView>

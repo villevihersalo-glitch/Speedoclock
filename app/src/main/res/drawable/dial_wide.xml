@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Invisible dial matching LcdFace's 1000x500 canvas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1000dp" android:height="500dp"
+    android:viewportWidth="1000" android:viewportHeight="500">
+    <path android:fillColor="#00000000" android:pathData="M0,0h1v1h-1z" />
+</vector>
