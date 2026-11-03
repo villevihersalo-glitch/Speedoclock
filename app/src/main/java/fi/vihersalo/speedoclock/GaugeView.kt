@@ -29,6 +29,7 @@ class GaugeView(context: Context, private val face: Face) : View(context) {
         context.getDrawable(if (face == Face.CHRONO) R.drawable.needle_chrono else R.drawable.needle_lcd)!!
     private val glare: Drawable =
         context.getDrawable(if (face == Face.CHRONO) R.drawable.glare_chrono else R.drawable.glare_lcd)!!
+    private val pin: Drawable? = if (face == Face.CHRONO) context.getDrawable(R.drawable.pin_needle) else null
     private val timePaint = textPaint(c(0xFF5CFF7A), 10f, MONO_BOLD)
 
     private var faceBmp: Bitmap? = null
@@ -119,6 +120,15 @@ class GaugeView(context: Context, private val face: Face) : View(context) {
         canvas.rotate(needleSeconds(now) * sweep / 60f, hubX, hubY)
         needle.draw(canvas)
         canvas.restore()
+
+        // Tiny red needle on the pin: one turn per second.
+        pin?.let {
+            it.setBounds(needle.bounds)
+            canvas.save()
+            canvas.rotate((now % 1000) * 0.36f, hubX, hubY)
+            it.draw(canvas)
+            canvas.restore()
+        }
 
         glare.setBounds(rect.left.toInt(), rect.top.toInt(), rect.right.toInt(), rect.bottom.toInt())
         glare.draw(canvas)

@@ -20,6 +20,19 @@
         android:hand_minute="@drawable/hand_none"
         android:hand_second="@drawable/needle_chrono" />
 
+    <!-- Spinning pin needle: an indeterminate ProgressBar is animated by the launcher, no app work. -->
+    <ProgressBar
+        android:id="@+id/pin"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateOnly="true"
+        android:indeterminateDrawable="@drawable/pin_spin"
+        android:indeterminateDuration="1000"
+        android:indeterminateBehavior="repeat"
+        android:interpolator="@android:anim/linear_interpolator"
+        android:importantForAccessibility="no" />
+
     <ImageView
         android:id="@+id/glare"
         android:layout_width="match_parent"

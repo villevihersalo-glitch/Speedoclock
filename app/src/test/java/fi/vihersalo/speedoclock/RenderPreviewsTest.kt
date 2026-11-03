@@ -52,6 +52,7 @@ class RenderPreviewsTest {
             val bmp = ChronoFace.render(st, 1000)
             val cv = Canvas(bmp)
             overlay(cv, R.drawable.needle_chrono, 0, 0, 1000, 1000, 500f, 500f, sec)
+            overlayDeg(cv, R.drawable.pin_needle, 0, 0, 1000, 1000, 500f, 500f, 120f)
             overlay(cv, R.drawable.glare_chrono, 0, 0, 1000, 1000, 500f, 500f, null)
             save(bmp, "chrono_$name.png")
         }
@@ -85,6 +86,7 @@ class RenderPreviewsTest {
         val chrono = ChronoFace.render(st, 1000, 270f)
         Canvas(chrono).let {
             overlayDeg(it, R.drawable.needle_chrono, 0, 0, 1000, 1000, 500f, 500f, angle)
+            overlayDeg(it, R.drawable.pin_needle, 0, 0, 1000, 1000, 500f, 500f, 120f)
             overlayDeg(it, R.drawable.glare_chrono, 0, 0, 1000, 1000, 500f, 500f, 0f)
         }
         save(chrono, "screensaver_chrono.png")

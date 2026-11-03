@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tiny red needle on the hub pin. Same 1000-unit canvas as the face; pointing up at rest. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1000dp" android:height="1000dp"
+    android:viewportWidth="1000" android:viewportHeight="1000">
+    <path android:fillColor="#FFE8231A"
+        android:pathData="M498.2,506 L499.4,477 L500.6,477 L501.8,506 Z" />
+    <path android:fillColor="#FFE8231A"
+        android:pathData="M495.5,500 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0 Z" />
+    <path android:fillColor="#FF1A1A1A"
+        android:pathData="M498.2,500 a1.8,1.8 0 1,0 3.6,0 a1.8,1.8 0 1,0 -3.6,0 Z" />
+</vector>
