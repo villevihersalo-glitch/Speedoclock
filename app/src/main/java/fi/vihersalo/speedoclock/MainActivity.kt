@@ -57,6 +57,16 @@ class MainActivity : Activity() {
             }
         }
 
+        findViewById<Button>(R.id.ss_face).setOnClickListener {
+            val next = if (ScreensaverPrefs.face(this) == GaugeView.Face.CHRONO) GaugeView.Face.LCD else GaugeView.Face.CHRONO
+            ScreensaverPrefs.setFace(this, next)
+            refreshLabels()
+        }
+        findViewById<Button>(R.id.nightstand).setOnClickListener {
+            startActivity(Intent(this, NightstandActivity::class.java))
+        }
+        findViewById<Button>(R.id.dream_settings).setOnClickListener { openDreamSettings() }
+
         findViewById<Button>(R.id.exact).setOnClickListener {
             startActivity(
                 Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName"))
@@ -85,7 +95,21 @@ class MainActivity : Activity() {
         }
     }
 
+    /** Some phone skins (often ColorOS / realme UI) hide the screen saver page. */
+    private fun openDreamSettings() {
+        val intent = Intent(Settings.ACTION_DREAM_SETTINGS)
+        if (intent.resolveActivity(packageManager) != null) {
+            try {
+                startActivity(intent)
+                return
+            } catch (_: Exception) { }
+        }
+        Toast.makeText(this, "This phone hides Android's screen saver setting. Use nightstand mode instead.", Toast.LENGTH_LONG).show()
+    }
+
     private fun refreshLabels() {
+        val faceName = if (ScreensaverPrefs.face(this) == GaugeView.Face.CHRONO) "Chrono" else "LCD"
+        findViewById<Button>(R.id.ss_face).text = "Face   " + faceName + "   (tap to switch)"
         for ((id, label, key) in timeRows) {
             val v = Prefs.get(this, key)
             findViewById<Button>(id).text = String.format(Locale.US, "%s   %02d:%02d", label, v / 60, v % 60)

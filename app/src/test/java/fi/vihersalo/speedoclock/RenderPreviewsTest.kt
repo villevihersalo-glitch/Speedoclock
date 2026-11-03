@@ -76,6 +76,33 @@ class RenderPreviewsTest {
         }
     }
 
+    @Test
+    fun renderScreensaver() {
+        val t = LocalDateTime.of(2026, 11, 3, 14, 41, 0)
+        val st = DashState.at(t, DashConfig())
+        val sec = 40
+        val angle = sec * 4.5f
+        val chrono = ChronoFace.render(st, 1000, 270f)
+        Canvas(chrono).let {
+            overlayDeg(it, R.drawable.needle_chrono, 0, 0, 1000, 1000, 500f, 500f, angle)
+            overlayDeg(it, R.drawable.glare_chrono, 0, 0, 1000, 1000, 500f, 500f, 0f)
+        }
+        save(chrono, "screensaver_chrono.png")
+        val lcd = LcdFace.render(st, 1000, 500, 270f)
+        Canvas(lcd).let {
+            val tp = textPaint(c(0xFF5CFF7A), LcdFace.TIME_TEXT_SIZE * 1.15f, MONO_BOLD)
+            it.textCentered("14:41:40", 500f, 250f + LcdFace.TIME_OFFSET_Y, tp)
+            overlayDeg(it, R.drawable.needle_lcd, 350, 100, 650, 400, 500f, 250f, angle)
+        }
+        save(lcd, "screensaver_lcd.png")
+    }
+
+    private fun overlayDeg(cv: Canvas, res: Int, l: Int, t: Int, r: Int, b: Int, px: Float, py: Float, deg: Float) {
+        val d = ctx.getDrawable(res) ?: return
+        d.setBounds(l, t, r, b)
+        cv.save(); cv.rotate(deg, px, py); d.draw(cv); cv.restore()
+    }
+
     /** Draws a vector over the face, rotated like AnalogClock rotates its second hand. */
     private fun overlay(
         cv: Canvas, res: Int, l: Int, t: Int, r: Int, b: Int, px: Float, py: Float, sec: Int?,

@@ -32,19 +32,20 @@ object ChronoFace {
     private val GREEN = c(0xFF39E46A)
     private val RED = c(0xFFE8231A)
 
-    fun render(s: DashState, px: Int): Bitmap {
+    /** [secSweep]: 360 for the widget's clock hand, 270 for the screensaver's own animated needle. */
+    fun render(s: DashState, px: Int, secSweep: Float = 360f): Bitmap {
         val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         cv.scale(px / SIZE, px / SIZE)
-        draw(cv, s)
+        draw(cv, s, secSweep)
         return bmp
     }
 
-    fun draw(cv: Canvas, s: DashState) {
+    fun draw(cv: Canvas, s: DashState, secSweep: Float = 360f) {
         bezel(cv)
         hourRing(cv, s)
         minuteLeds(cv, s)
-        tachDial(cv, s)
+        tachDial(cv, s, secSweep)
     }
 
     private fun bezel(cv: Canvas) {
@@ -165,7 +166,9 @@ object ChronoFace {
         }
     }
 
-    private fun tachDial(cv: Canvas, s: DashState) {
+    private fun tachDial(cv: Canvas, s: DashState, secSweep: Float) {
+        val step = secSweep / 60f
+        val full = secSweep >= 359f
         cv.drawCircle(CX, CY, 296f, stroke(c(0xFFCFC8BA), 6f))
         cv.drawCircle(CX, CY, 293f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = RadialGradient(
@@ -183,48 +186,52 @@ object ChronoFace {
                 c(0xFF0E0E0E), c(0xFF173017), c(0xFF22B536), c(0xFF8BD62E),
                 c(0xFFF2D21C), c(0xFFFF8A1A), RED, RED,
             ),
-            floatArrayOf(0f, .1f, .25f, .45f, .6f, .74f, .84f, 1f),
+            floatArrayOf(0f, .1f, .25f, .45f, .6f, .74f, .84f, 1f).map { it * secSweep / 360f }.toFloatArray(),
         ).apply { setLocalMatrix(Matrix().apply { setRotate(SEC_ZERO_DEG - 90f, CX, CY) }) }
-        cv.drawCircle(CX, CY, 270f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val bandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = 22f
             shader = band
-        })
+        }
+        if (full) cv.drawCircle(CX, CY, 270f, bandPaint)
+        else cv.drawArc(oval(CX, CY, 270f), SEC_ZERO_DEG - 90f, secSweep, false, bandPaint)
         // Redline seam where 60 meets 0.
-        cv.radialLine(CX, CY, SEC_ZERO_DEG, 258f, 283f, stroke(c(0xFF050505), 4f))
+        if (full) cv.radialLine(CX, CY, SEC_ZERO_DEG, 258f, 283f, stroke(c(0xFF050505), 4f))
 
-        for (sec in 0 until 60) {
-            val deg = SEC_ZERO_DEG + sec * 6f
+        for (sec in 0 until (if (full) 60 else 61)) {
+            val deg = SEC_ZERO_DEG + sec * step
             val major = sec % 5 == 0
             cv.radialLine(CX, CY, deg, 256f, if (major) 226f else 243f, stroke(CREAM, if (major) 5f else 2.2f))
         }
         val num = textPaint(CREAM, 50f, SANS_BOLD)
-        for (k in 0..5) {
-            val deg = SEC_ZERO_DEG + k * 60f
+        for (k in 0..(if (full) 5 else 6)) {
+            val deg = SEC_ZERO_DEG + k * 10 * step
             cv.textCentered(k.toString(), ax(CX, 192f, deg), ay(CY, 192f, deg), num)
         }
 
         // Gear window.
-        cv.textCentered("GEAR", CX, 336f, textPaint(c(0x99F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .25f })
-        val win = RectF(462f, 352f, 538f, 414f)
+        val gy = if (full) 0f else 10f
+        if (full) cv.textCentered("GEAR", CX, 336f, textPaint(c(0x99F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .25f })
+        val win = RectF(462f, 352f + gy, 538f, 414f + gy)
         cv.drawRoundRect(win, 10f, 10f, fill(c(0xFF060906)))
         cv.drawRoundRect(win, 10f, 10f, stroke(c(0xFF6B655C), 3f))
         val gearColor = if (s.gear == "N") GREEN else AMBER
-        cv.textCentered(s.gear, CX, 383f, textPaint(gearColor, 50f, MONO_BOLD).apply {
+        cv.textCentered(s.gear, CX, 383f + gy, textPaint(gearColor, 50f, MONO_BOLD).apply {
             setShadowLayer(12f, 0f, 0f, gearColor)
         })
         val topP = textPaint(if (s.topGear) AMBER else c(0x2EF4F0E6), 15f, SANS_BOLD).apply {
             letterSpacing = .15f
             if (s.topGear) setShadowLayer(8f, 0f, 0f, AMBER)
         }
-        cv.textCentered("TOP GEAR", CX, 437f, topP)
+        cv.textCentered("TOP GEAR", CX, 437f + gy * 0.6f, topP)
 
         // Head-light tell-tale (left) and date window (right).
         cv.headlightIcon(392f, 500f, 40f, if (s.headlights) c(0xFF3D7BFF) else c(0x26F4F0E6))
-        val date = RectF(580f, 481f, 680f, 519f)
+        val dx = if (full) 0f else -22f // keep clear of the "5" in 270° mode
+        val date = RectF(580f + dx, 481f, 680f + dx, 519f)
         cv.drawRoundRect(date, 5f, 5f, fill(c(0xFFF2EADA)))
         cv.drawRoundRect(date, 5f, 5f, stroke(c(0xFF8E8578), 3f))
-        cv.textCentered(s.dateShort, 630f, 500f, textPaint(c(0xFF151210), 21f, MONO_BOLD))
+        cv.textCentered(s.dateShort, 630f + dx, 500f, textPaint(c(0xFF151210), 21f, MONO_BOLD))
 
         cv.textCentered("×10 SEC", CX, 553f, textPaint(c(0xB3F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .12f })
         cv.textCentered("SPEEDOCLOCK", CX, 577f, textPaint(c(0xFFD9A441), 20f, SERIF_BOLD_ITALIC).apply { letterSpacing = .14f })

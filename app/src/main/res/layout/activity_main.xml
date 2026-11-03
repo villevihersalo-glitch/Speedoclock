@@ -120,6 +120,48 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:text="SCREENSAVER &amp; NIGHTSTAND"
+            android:letterSpacing="0.15"
+            android:textColor="@color/amber"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Full-screen gauge with a smooth 270° tacho needle. It dims itself at night and drifts a few pixels to avoid burn-in. Nightstand mode works on every phone; the Android screen saver only if your phone shows that setting."
+            android:textColor="#B3FFFFFF"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/ss_face"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/nightstand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start nightstand mode" />
+
+        <Button
+            android:id="@+id/dream_settings"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:text="Android screen saver settings"
+            android:textColor="@color/amber" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="TIMING"
             android:letterSpacing="0.15"
             android:textColor="@color/amber"

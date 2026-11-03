@@ -35,19 +35,23 @@ object LcdFace {
     private val RED = c(0xFFFF3B3B)
     private val AMBER = c(0xFFFFB22E)
 
-    fun render(s: DashState, wPx: Int, hPx: Int): Bitmap {
+    /**
+     * [secSweep] is how far the seconds needle travels in a minute: 360 for the widget (system clock hand),
+     * 270 for the screensaver / nightstand, which animate their own needle like a real tacho.
+     */
+    fun render(s: DashState, wPx: Int, hPx: Int, secSweep: Float = 360f): Bitmap {
         val bmp = Bitmap.createBitmap(wPx, hPx, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         cv.scale(wPx / W, hPx / H)
-        draw(cv, s)
+        draw(cv, s, secSweep)
         return bmp
     }
 
-    fun draw(cv: Canvas, s: DashState) {
+    fun draw(cv: Canvas, s: DashState, secSweep: Float = 360f) {
         housing(cv)
         hourArc(cv, s)
         minuteDots(cv, s)
-        secondsScale(cv)
+        secondsScale(cv, secSweep / 60f)
         leftColumn(cv, s)
         rightColumn(cv, s)
     }
@@ -108,15 +112,16 @@ object LcdFace {
         }
     }
 
-    private fun secondsScale(cv: Canvas) {
+    private fun secondsScale(cv: Canvas, step: Float) {
         for (sec in 0 until 60 step 5) {
-            val deg = SEC_ZERO_DEG + sec * 6f
+            val deg = SEC_ZERO_DEG + sec * step
             val len = if (sec % 15 == 0) 15f else 10f
             cv.radialLine(CX, CY, deg, 106f, 106f - len, stroke(if (sec >= 50) RED else LABEL, 3.5f))
         }
         // Red zone, last 10 seconds.
-        val start = SEC_ZERO_DEG + 50 * 6f - 90f
-        cv.drawArc(oval(CX, CY, 108f), start, 60f, false, stroke(RED, 5f).apply { setShadowLayer(6f, 0f, 0f, RED) })
+        if (step < 6f) cv.radialLine(CX, CY, SEC_ZERO_DEG + 60 * step, 106f, 91f, stroke(RED, 3.5f))
+        val start = SEC_ZERO_DEG + 50 * step - 90f
+        cv.drawArc(oval(CX, CY, 108f), start, 10 * step, false, stroke(RED, 5f).apply { setShadowLayer(6f, 0f, 0f, RED) })
         cv.textCentered("×10s", CX, 206f, textPaint(LABEL, 14f, SANS_BOLD).apply { letterSpacing = .1f })
     }
 
