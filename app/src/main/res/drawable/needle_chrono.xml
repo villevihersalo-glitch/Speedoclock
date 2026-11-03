@@ -3,7 +3,7 @@
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="1000dp" android:height="1000dp"
     android:viewportWidth="1000" android:viewportHeight="1000">
-    <group android:rotation="225" android:pivotX="500" android:pivotY="500">
+    <group android:rotation="0" android:pivotX="500" android:pivotY="500">
         <!-- soft shadow -->
         <path android:fillColor="#55000000"
             android:pathData="M490,566 L497,246 L505,246 L512,566 Z" />

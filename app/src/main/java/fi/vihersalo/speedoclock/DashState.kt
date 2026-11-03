@@ -12,6 +12,9 @@ data class DashConfig(
     val workEnd: Int = 17 * 60,
     val dayStart: Int = 7 * 60,
     val dayEnd: Int = 23 * 60,
+    /** Where the sun is computed for; null until the user taps "Use my location". */
+    val lat: Double? = null,
+    val lon: Double? = null,
 )
 
 /** Everything a face needs to draw one minute of the day. Seconds are handled by the live needle. */
@@ -34,13 +37,15 @@ data class DashState(
     val year: String,
     /** Time left of the working day ("2:18"), or "FREE". */
     val workLeft: String,
+    /** Sun elevation every 5 min of today (Sun.STEPS + 1 values), or null without a location. */
+    val sunElev: FloatArray? = null,
 ) {
     val minuteOfDay: Int get() = hour * 60 + minute
 
     companion object {
         fun now(ctx: Context) = at(LocalDateTime.now(), Prefs.config(ctx))
 
-        fun at(t: LocalDateTime, cfg: DashConfig): DashState {
+        fun at(t: LocalDateTime, cfg: DashConfig, zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): DashState {
             val mod = t.hour * 60 + t.minute
             val weekend = t.dayOfWeek == DayOfWeek.SATURDAY || t.dayOfWeek == DayOfWeek.SUNDAY
             val workLen = cfg.workEnd - cfg.workStart
@@ -70,7 +75,25 @@ data class DashState(
                 month = t.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.US).uppercase(Locale.US),
                 year = t.year.toString(),
                 workLeft = if (atWork) String.format(Locale.US, "%d:%02d", left / 60, left % 60) else "FREE",
+                sunElev = if (cfg.lat != null && cfg.lon != null) sunFor(cfg.lat, cfg.lon, t.toLocalDate(), zone) else null,
             )
+        }
+
+        // The sun curve only changes once a day; keep the last one.
+        private var sunKey: Triple<Double, Double, java.time.Instant>? = null
+        private var sunCache: FloatArray? = null
+
+        @Synchronized
+        fun sunFor(
+            lat: Double, lon: Double, date: java.time.LocalDate,
+            zone: java.time.ZoneId = java.time.ZoneId.systemDefault(),
+        ): FloatArray {
+            val key = Triple(lat, lon, date.atStartOfDay(zone).toInstant())
+            if (key != sunKey || sunCache == null) {
+                sunCache = Sun.dayElevations(lat, lon, date, zone)
+                sunKey = key
+            }
+            return sunCache!!
         }
     }
 }
@@ -97,10 +120,21 @@ object Prefs {
 
     fun set(c: Context, key: String, minutes: Int) = sp(c).edit().putInt(key, minutes).apply()
 
-    fun config(c: Context) = DashConfig(
-        workStart = get(c, WORK_START),
-        workEnd = get(c, WORK_END),
-        dayStart = get(c, DAY_START),
-        dayEnd = get(c, DAY_END),
-    )
+    fun config(c: Context): DashConfig {
+        val sp = sp(c)
+        val hasLoc = sp.contains("lat")
+        return DashConfig(
+            workStart = get(c, WORK_START),
+            workEnd = get(c, WORK_END),
+            dayStart = get(c, DAY_START),
+            dayEnd = get(c, DAY_END),
+            lat = if (hasLoc) sp.getFloat("lat", 0f).toDouble() else null,
+            lon = if (hasLoc) sp.getFloat("lon", 0f).toDouble() else null,
+        )
+    }
+
+    fun setLocation(c: Context, lat: Double, lon: Double) =
+        sp(c).edit().putFloat("lat", lat.toFloat()).putFloat("lon", lon.toFloat()).apply()
+
+    fun clearLocation(c: Context) = sp(c).edit().remove("lat").remove("lon").apply()
 }

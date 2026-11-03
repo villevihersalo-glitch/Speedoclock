@@ -23,8 +23,10 @@ object ChronoFace {
     private const val CX = 500f
     private const val CY = 500f
 
-    /** Where second 0 sits (lower left). Must match the rotation in needle_chrono.xml. */
-    const val SEC_ZERO_DEG = 225f
+    /** Where second 0 sits: at the top for the widget (needle_chrono.xml rests pointing up)... */
+    const val SEC_ZERO_FULL = 0f
+    /** ...and lower left for the 270° screensaver sweep (GaugeView turns the needle to match). */
+    const val SEC_ZERO_270 = 225f
 
     private val INK = c(0xFF2A1606)
     private val CREAM = c(0xFFF4F0E6)
@@ -82,16 +84,32 @@ object ChronoFace {
         })
 
         // 24 h gauge bar: fills clockwise from 24 at the top.
-        val bar = oval(CX, CY, 452f)
-        cv.drawCircle(CX, CY, 452f, stroke(c(0x33301A08), 18f))
         val sweep = s.minuteOfDay / 1440f * 360f
+        val sun = s.sunElev
+        val barR: Float
+        val barW: Float
+        if (sun != null) {
+            // Outer half: the sky through the day (night, blue hour, golden hour, daylight).
+            val step = 360f / Sun.STEPS
+            for (i in 0 until Sun.STEPS) {
+                val col = Sun.skyColor((sun[i] + sun[i + 1]) / 2f)
+                cv.drawArc(oval(CX, CY, 457f), -90f + i * step, step + 0.4f, false, stroke(col, 10f))
+            }
+            cv.drawCircle(CX, CY, 452f, stroke(c(0x66301A08), 1.5f))
+            barR = 447f; barW = 9f
+        } else {
+            barR = 452f; barW = 18f
+        }
+        cv.drawCircle(CX, CY, barR, stroke(c(0x33301A08), barW))
         if (sweep > 0f) {
-            cv.drawArc(bar, -90f, sweep, false, stroke(c(0xFFB8261A), 18f).apply {
+            cv.drawArc(oval(CX, CY, barR), -90f, sweep, false, stroke(c(0xFFB8261A), barW).apply {
                 setShadowLayer(8f, 0f, 0f, c(0xAAFF3A1A))
             })
-            cv.drawArc(oval(CX, CY, 457f), -90f, sweep, false, stroke(c(0x55FFFFFF), 3f))
-            // bright tip
-            cv.radialLine(CX, CY, sweep, 441f, 463f, stroke(c(0xFFFFE6B0), 5f))
+            cv.drawArc(oval(CX, CY, barR + barW / 2 - 2f), -90f, sweep, false, stroke(c(0x55FFFFFF), 2.5f))
+            // bright "now" tip across both bands
+            cv.radialLine(CX, CY, sweep, 441f, 463f, stroke(c(0xFFFFFFFF), 4f).apply {
+                setShadowLayer(4f, 0f, 0f, c(0xAA000000))
+            })
         }
         cv.drawCircle(CX, CY, 442f, stroke(c(0xFF6E3C0E), 2f))
         cv.drawCircle(CX, CY, 462f, stroke(c(0x886E3C0E), 1.5f))
@@ -169,6 +187,7 @@ object ChronoFace {
     private fun tachDial(cv: Canvas, s: DashState, secSweep: Float) {
         val step = secSweep / 60f
         val full = secSweep >= 359f
+        val zero = if (full) SEC_ZERO_FULL else SEC_ZERO_270
         cv.drawCircle(CX, CY, 296f, stroke(c(0xFFCFC8BA), 6f))
         cv.drawCircle(CX, CY, 293f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = RadialGradient(
@@ -187,25 +206,25 @@ object ChronoFace {
                 c(0xFFF2D21C), c(0xFFFF8A1A), RED, RED,
             ),
             floatArrayOf(0f, .1f, .25f, .45f, .6f, .74f, .84f, 1f).map { it * secSweep / 360f }.toFloatArray(),
-        ).apply { setLocalMatrix(Matrix().apply { setRotate(SEC_ZERO_DEG - 90f, CX, CY) }) }
+        ).apply { setLocalMatrix(Matrix().apply { setRotate(zero - 90f, CX, CY) }) }
         val bandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = 22f
             shader = band
         }
         if (full) cv.drawCircle(CX, CY, 270f, bandPaint)
-        else cv.drawArc(oval(CX, CY, 270f), SEC_ZERO_DEG - 90f, secSweep, false, bandPaint)
+        else cv.drawArc(oval(CX, CY, 270f), zero - 90f, secSweep, false, bandPaint)
         // Redline seam where 60 meets 0.
-        if (full) cv.radialLine(CX, CY, SEC_ZERO_DEG, 258f, 283f, stroke(c(0xFF050505), 4f))
+        if (full) cv.radialLine(CX, CY, zero, 258f, 283f, stroke(c(0xFF050505), 4f))
 
         for (sec in 0 until (if (full) 60 else 61)) {
-            val deg = SEC_ZERO_DEG + sec * step
+            val deg = zero + sec * step
             val major = sec % 5 == 0
             cv.radialLine(CX, CY, deg, 256f, if (major) 226f else 243f, stroke(CREAM, if (major) 5f else 2.2f))
         }
         val num = textPaint(CREAM, 40f, SANS_BOLD)
         for (k in 0..(if (full) 5 else 6)) {
-            val deg = SEC_ZERO_DEG + k * 10 * step
+            val deg = zero + k * 10 * step
             cv.textCentered((k * 10).toString(), ax(CX, 198f, deg), ay(CY, 198f, deg), num)
         }
 

@@ -117,7 +117,9 @@ class GaugeView(context: Context, private val face: Face) : View(context) {
         val half = (if (face == Face.CHRONO) 500f else 150f) * unit
         needle.setBounds((hubX - half).toInt(), (hubY - half).toInt(), (hubX + half).toInt(), (hubY + half).toInt())
         canvas.save()
-        canvas.rotate(needleSeconds(now) * sweep / 60f, hubX, hubY)
+        // needle_chrono rests at the top (widget); the 270° screensaver dial starts at lower left.
+        val rest = if (face == Face.CHRONO) ChronoFace.SEC_ZERO_270 else 0f
+        canvas.rotate(rest + needleSeconds(now) * sweep / 60f, hubX, hubY)
         needle.draw(canvas)
         canvas.restore()
 

@@ -1,11 +1,15 @@
 package fi.vihersalo.speedoclock
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.TimePickerDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -21,6 +25,10 @@ import java.util.Locale
 import kotlin.math.min
 
 class MainActivity : Activity() {
+
+    companion object {
+        private const val REQ_LOCATION = 7
+    }
 
     private val handler = Handler(Looper.getMainLooper())
     private val minuteTick = object : Runnable {
@@ -67,6 +75,14 @@ class MainActivity : Activity() {
         }
         findViewById<Button>(R.id.dream_settings).setOnClickListener { openDreamSettings() }
 
+        findViewById<Button>(R.id.sun_loc).setOnClickListener {
+            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                fetchLocation()
+            } else {
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQ_LOCATION)
+            }
+        }
+
         findViewById<Button>(R.id.exact).setOnClickListener {
             startActivity(
                 Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName"))
@@ -95,6 +111,55 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_LOCATION && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) fetchLocation()
+    }
+
+    /** One rough fix is enough: sunrise barely moves within a city. Saved rounded to ~1 km. */
+    private fun fetchLocation() {
+        val lm = getSystemService(LocationManager::class.java)
+        try {
+            val last = lm.getProviders(true).mapNotNull { lm.getLastKnownLocation(it) }.maxByOrNull { it.time }
+            if (last != null) return saveLocation(last)
+            val provider = listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
+                .firstOrNull { lm.isProviderEnabled(it) }
+            if (provider == null) {
+                Toast.makeText(this, "Turn on Location in quick settings, then try again.", Toast.LENGTH_LONG).show()
+                return
+            }
+            Toast.makeText(this, "Finding your location…", Toast.LENGTH_SHORT).show()
+            lm.getCurrentLocation(provider, null, mainExecutor) { loc ->
+                if (loc != null) saveLocation(loc)
+                else Toast.makeText(this, "Couldn't get a location. Try again outdoors or with Wi-Fi on.", Toast.LENGTH_LONG).show()
+            }
+        } catch (_: SecurityException) {
+        }
+    }
+
+    private fun saveLocation(loc: Location) {
+        val r = { v: Double -> Math.round(v * 100) / 100.0 }
+        Prefs.setLocation(this, r(loc.latitude), r(loc.longitude))
+        refreshLabels()
+        renderPreviews()
+        WidgetUpdater.updateAll(this)
+    }
+
+    private fun sunText(): String {
+        val cfg = Prefs.config(this)
+        if (cfg.lat == null || cfg.lon == null) {
+            return "Tap below and the 24 h ring shows today's sky: night, blue hour, golden hour and daylight, for where you are."
+        }
+        val e = DashState.sunFor(cfg.lat, cfg.lon, java.time.LocalDate.now())
+        fun hm(m: Int?) = if (m == null) "--:--" else String.format(Locale.US, "%02d:%02d", m / 60, m % 60)
+        val rise = Sun.crossing(e, -0.833f, rising = true)
+        val set = Sun.crossing(e, -0.833f, rising = false)
+        return "Sunrise " + hm(rise) + "  ·  Sunset " + hm(set) + "\n" +
+            "Blue hour from " + hm(Sun.crossing(e, -6f, true)) + ", golden hour until " + hm(Sun.crossing(e, 6f, true)) + "\n" +
+            "Golden hour from " + hm(Sun.crossing(e, 6f, false)) + ", blue hour until " + hm(Sun.crossing(e, -6f, false)) + "\n" +
+            String.format(Locale.US, "Location %.2f, %.2f", cfg.lat, cfg.lon)
+    }
+
     /** Some phone skins (often ColorOS / realme UI) hide the screen saver page. */
     private fun openDreamSettings() {
         val intent = Intent(Settings.ACTION_DREAM_SETTINGS)
@@ -108,6 +173,9 @@ class MainActivity : Activity() {
     }
 
     private fun refreshLabels() {
+        findViewById<TextView>(R.id.sun_note).text = sunText()
+        findViewById<Button>(R.id.sun_loc).text =
+            if (Prefs.config(this).lat == null) "Use my location" else "Update location"
         val faceName = if (ScreensaverPrefs.face(this) == GaugeView.Face.CHRONO) "Chrono" else "LCD"
         findViewById<Button>(R.id.ss_face).text = "Face   " + faceName + "   (tap to switch)"
         for ((id, label, key) in timeRows) {

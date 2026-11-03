@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Rough location (city level), asked once, only to work out sunrise and sunset. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Optional: lets the minute LEDs flip exactly on the minute. User grants it in settings. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
