@@ -139,8 +139,20 @@ object MoonFace {
         } else {
             cv.drawCircle(x, y, r, fill(c(0xFF1C2028))) // earthshine
         }
-        val mare = fill(if (lit) c(0x8A6E6C66) else c(0x40000000))
-        for (m in maria) cv.drawCircle(x + m[0] * r, y + m[1] * r, m[2] * r, mare)
+        // Seas: soft-edged, built from a few overlapping blobs so they don't look like stickers.
+        val core = if (lit) c(0x7A66645E) else c(0x24000000)
+        val blob = java.util.Random(3)
+        for (m in maria) {
+            repeat(3) { k ->
+                val ox = if (k == 0) 0f else (blob.nextFloat() - .5f) * m[2] * 0.9f
+                val oy = if (k == 0) 0f else (blob.nextFloat() - .5f) * m[2] * 0.9f
+                val mr = m[2] * r * (if (k == 0) 1f else 0.55f + blob.nextFloat() * 0.3f)
+                val mx = x + (m[0] + ox) * r; val myy = y + (m[1] + oy) * r
+                cv.drawCircle(mx, myy, mr, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    shader = RadialGradient(mx, myy, mr, intArrayOf(core, core, 0), floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
+                })
+            }
+        }
         // small craters with a lit rim
         val rnd = java.util.Random(7)
         repeat(34) {
@@ -149,8 +161,9 @@ object MoonFace {
             val cx = x + (cos(a) * d * r).toFloat()
             val cy = y + (Math.sin(a) * d * r).toFloat()
             val cr = r * (0.02f + rnd.nextFloat() * 0.05f)
-            cv.drawCircle(cx, cy, cr, fill(if (lit) c(0x40595750) else c(0x26000000)))
-            if (lit) cv.drawCircle(cx + cr * 0.25f, cy + cr * 0.25f, cr, stroke(c(0x33FFFFFF), 1.2f))
+            if (!lit) return@repeat
+            cv.drawCircle(cx, cy, cr, fill(c(0x33595750)))
+            cv.drawCircle(cx + cr * 0.25f, cy + cr * 0.25f, cr, stroke(c(0x2EFFFFFF), 1.2f))
         }
         if (lit) {
             // Tycho, bright young crater near the south

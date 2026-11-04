@@ -103,7 +103,7 @@ object Panels {
                 if (w == null) glowText(cv, "--", inner, 34f, DIM)
                 else WeatherIcons.draw(cv, w.code, inner.centerX(), inner.centerY() + 1f, inner.height() * 0.92f)
             }
-            Source.FUEL -> fuelBars(cv, inner, s.fuel, 5)
+            Source.FUEL -> fuelBars(cv, RectF(inner.left + 4f, inner.top + 8f, inner.right - 4f, inner.bottom - 6f), s.fuel, 5)
             else -> glowText(cv, value(src, s), inner, 34f, valueColor(src, s))
         }
     }
