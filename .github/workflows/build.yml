@@ -15,7 +15,9 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - name: Build APK and render face previews
-        run: chmod +x gradlew && ./gradlew --no-daemon assembleDebug testDebugUnitTest
+        run: |
+          set -o pipefail
+          chmod +x gradlew && ./gradlew --no-daemon assembleDebug testDebugUnitTest 2>&1 | tee build.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -27,6 +29,20 @@ jobs:
           name: speedoclock-debug-apk
           retention-days: 2
           path: app/build/outputs/apk/debug/*.apk
+      # Readable without logging in: the failing build's log goes to the ci-log branch.
+      - name: Publish build log on failure
+        if: failure()
+        run: |
+          mkdir -p /tmp/log && grep -E "^e: |error:|FAILED|Exception|expected|at fi\.vihersalo" build.log | head -200 > /tmp/log/errors.txt || true
+          tail -300 build.log > /tmp/log/tail.txt
+          find app/build/test-results -name "*.xml" -exec grep -l "<failure" {} \; 2>/dev/null | xargs -r cp -t /tmp/log/ || true
+          cd /tmp/log
+          git init -q -b ci-log
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A && git commit -qm "Build log for ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ci-log
+
       - name: Publish previews to the previews branch
         if: github.ref == 'refs/heads/main'
         run: |
