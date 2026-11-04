@@ -132,10 +132,11 @@ class ScreensTest {
         val st = state(LocalDateTime.of(2026, 11, 4, 9, 27, 0))
         val face = ChronoFace.renderOuter(st, 1000)
         val moon = MoonFace.render(st.epochMs, st.lat, 600)
-        Canvas(face).apply {
-            drawBitmap(moon, 200f, 200f, null)
-            ctx.getDrawable(R.drawable.glare_chrono)!!.apply { setBounds(0, 0, 1000, 1000); draw(this@apply) }
-        }
+        val fc = Canvas(face)
+        fc.drawBitmap(moon, 200f, 200f, null)
+        val glare = ctx.getDrawable(R.drawable.glare_chrono)!!
+        glare.setBounds(0, 0, 1000, 1000)
+        glare.draw(fc)
         save(face, "widget_moon.png")
     }
 
