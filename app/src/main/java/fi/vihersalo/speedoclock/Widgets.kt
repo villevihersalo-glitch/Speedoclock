@@ -55,8 +55,10 @@ object WidgetUpdater {
     private val refreshing = java.util.concurrent.atomic.AtomicBoolean(false)
 
     private fun sp(c: Context) = c.getSharedPreferences("speedoclock", Context.MODE_PRIVATE)
-    fun moonShown(c: Context) = sp(c).getBoolean("moon_shown", false)
-    fun toggleMoon(c: Context) = sp(c).edit().putBoolean("moon_shown", !moonShown(c)).apply()
+    /** Centre page: 0 = seconds dial, 1 = moon, 2 = solar system. */
+    fun centerPage(c: Context) = sp(c).getInt("center_page", 0).coerceIn(0, 2)
+    fun moonShown(c: Context) = centerPage(c) != 0
+    fun toggleMoon(c: Context) = sp(c).edit().putInt("center_page", (centerPage(c) + 1) % 3).apply()
 
     /** Reads the step counter and refreshes stale feeds off the main thread, then redraws if anything changed. */
     fun refreshInBackground(context: Context, done: () -> Unit = {}) {
@@ -102,10 +104,11 @@ object WidgetUpdater {
             setImageViewBitmap(R.id.face, ChronoFace.renderOuter(st, px))
             setImageViewBitmap(R.id.dial, ChronoFace.renderInner(st, innerPx))
             setImageViewBitmap(R.id.moon, MoonFace.render(st.epochMs, st.lat, innerPx))
+            setImageViewBitmap(R.id.solar, Orrery.render(st.epochMs, innerPx))
             val flipDp = sideDp * ChronoFace.INNER_FRACTION
             setViewLayoutWidth(R.id.flip, flipDp, TypedValue.COMPLEX_UNIT_DIP)
             setViewLayoutHeight(R.id.flip, flipDp, TypedValue.COMPLEX_UNIT_DIP)
-            setDisplayedChild(R.id.flip, if (moon) 1 else 0)
+            setDisplayedChild(R.id.flip, centerPage(ctx))
             val hands = if (moon) android.view.View.GONE else android.view.View.VISIBLE
             setViewVisibility(R.id.needle, hands)
             setViewVisibility(R.id.pin, hands)

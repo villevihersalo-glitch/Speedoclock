@@ -130,7 +130,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Pick what each little screen shows. Tap the middle of the clock to flip it to the moon; tap the hour ring to open this app. Weather needs your location (below)."
+            android:text="Pick what each little screen shows. Tap the middle of the clock to flip it to the moon, then the solar system; tap the hour ring to open this app. Weather needs your location (below)."
             android:textColor="#B3FFFFFF"
             android:textSize="13sp" />
 

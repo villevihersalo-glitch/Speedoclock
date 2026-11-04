@@ -270,7 +270,7 @@ class MainActivity : Activity() {
         val chrono = findViewById<FrameLayout>(R.id.chrono_box)
         val flip = chrono.findViewById<android.widget.ViewFlipper>(R.id.flip)
         val moon = WidgetUpdater.moonShown(this)
-        val want = if (moon) 1 else 0
+        val want = WidgetUpdater.centerPage(this)
         if (flip.displayedChild != want) {
             if (!animate) { flip.inAnimation = null; flip.outAnimation = null }
             flip.displayedChild = want
@@ -291,6 +291,7 @@ class MainActivity : Activity() {
         chrono.findViewById<ImageView>(R.id.face).setImageBitmap(ChronoFace.renderOuter(st, 800))
         chrono.findViewById<ImageView>(R.id.dial).setImageBitmap(ChronoFace.renderInner(st, 480))
         chrono.findViewById<ImageView>(R.id.moon).setImageBitmap(MoonFace.render(st.epochMs, st.lat, 480))
+        chrono.findViewById<ImageView>(R.id.solar).setImageBitmap(Orrery.render(st.epochMs, 480))
         chrono.post {
             val side = min(chrono.width, chrono.height)
             val flip = chrono.findViewById<android.widget.ViewFlipper>(R.id.flip)

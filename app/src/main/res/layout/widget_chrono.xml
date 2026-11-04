@@ -33,6 +33,13 @@
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
             android:contentDescription="Moon phase" />
+
+        <ImageView
+            android:id="@+id/solar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="Solar system" />
     </ViewFlipper>
 
     <AnalogClock

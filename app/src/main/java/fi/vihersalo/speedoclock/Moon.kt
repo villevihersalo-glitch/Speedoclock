@@ -96,7 +96,7 @@ object MoonFace {
         val new = Instant.ofEpochMilli(epochMs + MoonPhase.untilAge(epochMs, 0.0)).atZone(zone).toLocalDate()
         val line = "FULL ${full.format(fmt)}   ·   NEW ${new.format(fmt)}"
         cv.textCentered(line, CX, 500f, textPaint(AMBER, 17f, SANS_BOLD).apply { letterSpacing = .06f })
-        cv.textCentered("TAP TO FLIP BACK", CX, 536f, textPaint(c(0x4DF4F0E6), 11f, SANS_BOLD).apply { letterSpacing = .2f })
+        cv.textCentered("TAP FOR SOLAR SYSTEM", CX, 536f, textPaint(c(0x4DF4F0E6), 11f, SANS_BOLD).apply { letterSpacing = .2f })
     }
 
     private fun stars(cv: Canvas) {

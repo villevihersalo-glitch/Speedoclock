@@ -111,6 +111,23 @@ class ScreensTest {
     }
 
     @Test
+    fun earthPosition() {
+        // At the March equinox the Sun is at 0° seen from Earth, so Earth is at 180° from the Sun.
+        val lon = Orrery.longitude("EARTH", Instant.parse("2026-03-20T14:46:00Z").toEpochMilli())
+        assertTrue("earth $lon", lon in 178.5..181.5)
+    }
+
+    @Test
+    fun renderSolar() {
+        val st = state(LocalDateTime.of(2026, 11, 4, 10, 10, 0))
+        val face = ChronoFace.renderOuter(st, 1000)
+        val fc = Canvas(face)
+        fc.drawBitmap(Orrery.render(st.epochMs, 600), 200f, 200f, null)
+        save(face, "widget_solar.png")
+        save(Orrery.render(st.epochMs, 1200), "solar_big.png")
+    }
+
+    @Test
     fun renderMoon() {
         val dates = listOf(
             "crescent" to "2026-11-13T12:00:00Z",
