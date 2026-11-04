@@ -39,11 +39,25 @@ data class DashState(
     val workLeft: String,
     /** Sun elevation every 5 min of today (Sun.STEPS + 1 values), or null without a location. */
     val sunElev: FloatArray? = null,
+    val steps: Int? = null,
+    val weather: Weather? = null,
+    val fx: Fx? = null,
+    val slots: Map<Panels.Slot, Panels.Source> = Panels.DEFAULT_LAYOUT,
+    val epochMs: Long = System.currentTimeMillis(),
+    val lat: Double? = null,
 ) {
     val minuteOfDay: Int get() = hour * 60 + minute
 
     companion object {
-        fun now(ctx: Context) = at(LocalDateTime.now(), Prefs.config(ctx))
+        fun now(ctx: Context): DashState {
+            val t = LocalDateTime.now()
+            return at(t, Prefs.config(ctx)).copy(
+                steps = Steps.today(ctx),
+                weather = Feeds.weather(ctx, t),
+                fx = Feeds.fx(ctx),
+                slots = Panels.layout(ctx),
+            )
+        }
 
         fun at(t: LocalDateTime, cfg: DashConfig, zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): DashState {
             val mod = t.hour * 60 + t.minute
@@ -75,6 +89,8 @@ data class DashState(
                 month = t.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.US).uppercase(Locale.US),
                 year = t.year.toString(),
                 workLeft = if (atWork) String.format(Locale.US, "%d:%02d", left / 60, left % 60) else "FREE",
+                epochMs = t.atZone(zone).toInstant().toEpochMilli(),
+                lat = cfg.lat,
                 sunElev = if (cfg.lat != null && cfg.lon != null) sunFor(cfg.lat, cfg.lon, t.toLocalDate(), zone) else null,
             )
         }

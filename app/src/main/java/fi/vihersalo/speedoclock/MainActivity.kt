@@ -28,6 +28,7 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQ_LOCATION = 7
+        private const val REQ_STEPS = 8
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -38,6 +39,13 @@ class MainActivity : Activity() {
             handler.postDelayed(this, 60_000 - now % 60_000 + 50)
         }
     }
+
+    private val slotButtons = mapOf(
+        Panels.Slot.LEFT to R.id.slot_left,
+        Panels.Slot.CENTER to R.id.slot_center,
+        Panels.Slot.RIGHT to R.id.slot_right,
+        Panels.Slot.BOTTOM to R.id.slot_bottom,
+    )
 
     private val timeRows = listOf(
         Triple(R.id.work_start, "Work starts", Prefs.WORK_START),
@@ -83,6 +91,19 @@ class MainActivity : Activity() {
             }
         }
 
+        for ((slot, id) in slotButtons) {
+            findViewById<Button>(id).setOnClickListener { pickSource(slot) }
+        }
+        findViewById<Button>(R.id.fx_pair).setOnClickListener { pickCurrency(base = true) }
+
+        // Preview: tapping the centre flips it, like on the home screen.
+        findViewById<FrameLayout>(R.id.chrono_box).findViewById<android.widget.ViewFlipper>(R.id.flip)
+            .setOnClickListener {
+                WidgetUpdater.toggleMoon(this)
+                applyFlip(animate = true)
+                WidgetUpdater.updateAll(this)
+            }
+
         findViewById<Button>(R.id.exact).setOnClickListener {
             startActivity(
                 Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName"))
@@ -95,6 +116,53 @@ class MainActivity : Activity() {
         refreshLabels()
         handler.post(minuteTick)
         WidgetUpdater.updateAll(this)
+        WidgetUpdater.refreshInBackground(this) { runOnUiThread { renderPreviews() } }
+    }
+
+    private fun pickSource(slot: Panels.Slot) {
+        val sources = Panels.Source.values()
+        val current = Panels.layout(this).getValue(slot)
+        android.app.AlertDialog.Builder(this)
+            .setTitle(slot.label)
+            .setSingleChoiceItems(sources.map { it.label }.toTypedArray(), sources.indexOf(current)) { d, which ->
+                val src = sources[which]
+                Panels.set(this, slot, src)
+                d.dismiss()
+                when {
+                    src == Panels.Source.STEPS && !Steps.available(this) ->
+                        Toast.makeText(this, "This phone has no step counter.", Toast.LENGTH_LONG).show()
+                    src == Panels.Source.STEPS && !Steps.hasPermission(this) ->
+                        requestPermissions(arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), REQ_STEPS)
+                    (src == Panels.Source.TEMP || src == Panels.Source.WEATHER) && Prefs.config(this).lat == null ->
+                        Toast.makeText(this, "Tap \"Use my location\" below so the weather knows where you are.", Toast.LENGTH_LONG).show()
+                }
+                settingsChanged()
+            }
+            .show()
+    }
+
+    /** Two steps: "1 ___ =" then "___". */
+    private fun pickCurrency(base: Boolean, chosenBase: String? = null) {
+        val list = Feeds.CURRENCIES.toTypedArray()
+        val (b, q) = Feeds.fxPair(this)
+        android.app.AlertDialog.Builder(this)
+            .setTitle(if (base) "Convert from" else "1 ${chosenBase} in")
+            .setSingleChoiceItems(list, list.indexOf(if (base) b else q)) { d, which ->
+                d.dismiss()
+                if (base) pickCurrency(base = false, chosenBase = list[which])
+                else {
+                    Feeds.setFxPair(this, chosenBase!!, list[which])
+                    settingsChanged()
+                }
+            }
+            .show()
+    }
+
+    private fun settingsChanged() {
+        refreshLabels()
+        renderPreviews()
+        WidgetUpdater.updateAll(this)
+        WidgetUpdater.refreshInBackground(this) { runOnUiThread { renderPreviews() } }
     }
 
     override fun onPause() {
@@ -113,7 +181,9 @@ class MainActivity : Activity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_LOCATION && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) fetchLocation()
+        val ok = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+        if (requestCode == REQ_LOCATION && ok) fetchLocation()
+        if (requestCode == REQ_STEPS) settingsChanged()
     }
 
     /** One rough fix is enough: sunrise barely moves within a city. Saved rounded to ~1 km. */
@@ -140,15 +210,14 @@ class MainActivity : Activity() {
     private fun saveLocation(loc: Location) {
         val r = { v: Double -> Math.round(v * 100) / 100.0 }
         Prefs.setLocation(this, r(loc.latitude), r(loc.longitude))
-        refreshLabels()
-        renderPreviews()
-        WidgetUpdater.updateAll(this)
+        Feeds.clearWeather(this)
+        settingsChanged()
     }
 
     private fun sunText(): String {
         val cfg = Prefs.config(this)
         if (cfg.lat == null || cfg.lon == null) {
-            return "Tap below and the 24 h ring shows today's sky: night, blue hour, golden hour and daylight, for where you are."
+            return "Tap below and the 24 h ring shows today's sky (night, blue hour, golden hour, daylight) and the screens can show your weather. Rough location only, asked once."
         }
         val e = DashState.sunFor(cfg.lat, cfg.lon, java.time.LocalDate.now())
         fun hm(m: Int?) = if (m == null) "--:--" else String.format(Locale.US, "%02d:%02d", m / 60, m % 60)
@@ -173,6 +242,12 @@ class MainActivity : Activity() {
     }
 
     private fun refreshLabels() {
+        val layout = Panels.layout(this)
+        for ((slot, id) in slotButtons) {
+            findViewById<Button>(id).text = slot.label + "   " + layout.getValue(slot).label
+        }
+        val (fb, fq) = Feeds.fxPair(this)
+        findViewById<Button>(R.id.fx_pair).text = "Currency   1 $fb → $fq"
         findViewById<TextView>(R.id.sun_note).text = sunText()
         findViewById<Button>(R.id.sun_loc).text =
             if (Prefs.config(this).lat == null) "Use my location" else "Update location"
@@ -191,11 +266,40 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.exact).visibility = if (exact) Button.GONE else Button.VISIBLE
     }
 
+    private fun applyFlip(animate: Boolean) {
+        val chrono = findViewById<FrameLayout>(R.id.chrono_box)
+        val flip = chrono.findViewById<android.widget.ViewFlipper>(R.id.flip)
+        val moon = WidgetUpdater.moonShown(this)
+        val want = if (moon) 1 else 0
+        if (flip.displayedChild != want) {
+            if (!animate) { flip.inAnimation = null; flip.outAnimation = null }
+            flip.displayedChild = want
+            if (!animate) {
+                flip.setInAnimation(this, R.anim.flip_in)
+                flip.setOutAnimation(this, R.anim.flip_out)
+            }
+        }
+        val v = if (moon) android.view.View.GONE else android.view.View.VISIBLE
+        chrono.findViewById<android.view.View>(R.id.needle).visibility = v
+        chrono.findViewById<android.view.View>(R.id.pin).visibility = v
+    }
+
     private fun renderPreviews() {
         val st = DashState.now(this)
 
         val chrono = findViewById<FrameLayout>(R.id.chrono_box)
-        chrono.findViewById<ImageView>(R.id.face).setImageBitmap(ChronoFace.render(st, 800))
+        chrono.findViewById<ImageView>(R.id.face).setImageBitmap(ChronoFace.renderOuter(st, 800))
+        chrono.findViewById<ImageView>(R.id.dial).setImageBitmap(ChronoFace.renderInner(st, 480))
+        chrono.findViewById<ImageView>(R.id.moon).setImageBitmap(MoonFace.render(st.epochMs, st.lat, 480))
+        chrono.post {
+            val side = min(chrono.width, chrono.height)
+            val flip = chrono.findViewById<android.widget.ViewFlipper>(R.id.flip)
+            val lp = flip.layoutParams
+            lp.width = (side * ChronoFace.INNER_FRACTION).toInt()
+            lp.height = lp.width
+            flip.layoutParams = lp
+        }
+        applyFlip(animate = false)
 
         val lcd = findViewById<FrameLayout>(R.id.lcd_box)
         lcd.findViewById<ImageView>(R.id.face).setImageBitmap(LcdFace.render(st, 1000, 500))

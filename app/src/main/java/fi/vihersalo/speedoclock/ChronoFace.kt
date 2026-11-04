@@ -8,7 +8,6 @@ import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.SweepGradient
-import kotlin.math.ceil
 
 /**
  * Classic chrome-bezel gauge (design cues from vintage sports-car clocks):
@@ -43,11 +42,34 @@ object ChronoFace {
         return bmp
     }
 
-    fun draw(cv: Canvas, s: DashState, secSweep: Float = 360f) {
+    fun draw(cv: Canvas, s: DashState, secSweep: Float = 360f, inner: Boolean = true) {
         bezel(cv)
         hourRing(cv, s)
         minuteLeds(cv, s)
+        if (inner) tachDial(cv, s, secSweep)
+        else cv.drawCircle(CX, CY, 297f, fill(c(0xFF030303))) // backdrop for the flip
+    }
+
+    /** The face with an empty centre: the widget puts the flipping dial (seconds <-> moon) there. */
+    fun renderOuter(s: DashState, px: Int): Bitmap {
+        val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+        val cv = Canvas(bmp)
+        cv.scale(px / SIZE, px / SIZE)
+        draw(cv, s, inner = false)
+        return bmp
+    }
+
+    /** Fraction of the face the inner dial square covers (600 of 1000 units). */
+    const val INNER_FRACTION = 0.6f
+
+    /** Just the seconds dial, on a 600 x 600 square centred on the hub. */
+    fun renderInner(s: DashState, px: Int, secSweep: Float = 360f): Bitmap {
+        val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+        val cv = Canvas(bmp)
+        cv.scale(px / 600f, px / 600f)
+        cv.translate(-200f, -200f)
         tachDial(cv, s, secSweep)
+        return bmp
     }
 
     private fun bezel(cv: Canvas) {
@@ -137,12 +159,12 @@ object ChronoFace {
             cv.radialLine(CX, CY, i * 3.75f, t0, t0 - len, stroke(INK, w))
         }
 
-        // Numerals 1..24.
+        // Numerals 0..23 (0 at the top, where the day starts).
         val big = textPaint(INK, 44f, SERIF_BOLD).apply { setShadowLayer(2f, 0f, 1f, c(0x55FFF0C0)) }
         val small = textPaint(INK, 30f, SERIF_BOLD)
         for (h in 1..24) {
             val deg = h * 15f
-            cv.textCentered(h.toString(), ax(CX, 380f, deg), ay(CY, 380f, deg), if (h % 2 == 0) big else small)
+            cv.textCentered((h % 24).toString(), ax(CX, 380f, deg), ay(CY, 380f, deg), if (h % 2 == 0) big else small)
         }
     }
 
@@ -241,23 +263,15 @@ object ChronoFace {
             cv.textCentered((k * 10).toString(), ax(CX, 198f, deg), ay(CY, 198f, deg), num)
         }
 
-        // Gear window.
-        val gy = if (full) 0f else 10f
-        val win = RectF(462f, 352f + gy, 538f, 414f + gy)
-        cv.drawRoundRect(win, 10f, 10f, fill(c(0xFF060906)))
-        cv.drawRoundRect(win, 10f, 10f, stroke(c(0xFF6B655C), 3f))
-        val gearColor = if (s.gear == "N") GREEN else AMBER
-        cv.textCentered(s.gear, CX, 383f + gy, textPaint(gearColor, 50f, MONO_BOLD).apply {
-            setShadowLayer(12f, 0f, 0f, gearColor)
-        })
-        val topP = textPaint(if (s.topGear) AMBER else c(0x2EF4F0E6), 15f, SANS_BOLD).apply {
-            letterSpacing = .15f
-            if (s.topGear) setShadowLayer(8f, 0f, 0f, AMBER)
+        // Three small LCD screens in a row above the hub.
+        val wy = if (full) 0f else 10f
+        val (w, gap) = if (full) 74f to 15f else 66f to 11f
+        val top = 348f + wy
+        val xs = listOf(CX - w * 1.5f - gap, CX - w / 2, CX + w / 2 + gap)
+        listOf(Panels.Slot.LEFT, Panels.Slot.CENTER, Panels.Slot.RIGHT).forEachIndexed { i, slot ->
+            Panels.small(cv, RectF(xs[i], top, xs[i] + w, top + 64f), s.slots.getValue(slot), s)
         }
-        cv.textCentered("TOP GEAR", CX, 437f + gy * 0.6f, topP)
 
-        // Head-light tell-tale beside the gear window.
-        cv.headlightIcon(414f, 383f + gy, 34f, if (s.headlights) c(0xFF3D7BFF) else c(0x26F4F0E6))
         // Windows: day and week on the left, month and year on the right.
         val windowText = textPaint(c(0xFF151210), 20f, MONO_BOLD)
         val windows = listOf(
@@ -275,25 +289,7 @@ object ChronoFace {
         cv.textCentered("SEC", CX, 553f, textPaint(c(0xB3F4F0E6), 15f, SANS_BOLD).apply { letterSpacing = .12f })
         cv.textCentered("SPEEDOCLOCK", CX, 577f, textPaint(c(0xFFD9A441), 20f, SERIF_BOLD_ITALIC).apply { letterSpacing = .14f })
 
-        fuelGauge(cv, s, 500f, 662f)
-    }
-
-    private fun fuelGauge(cv: Canvas, s: DashState, fx: Float, fy: Float) {
-        val segs = 8
-        val lit = if (s.fuel <= 0f) 0 else ceil(s.fuel * segs).toInt()
-        val span = 110f / segs
-        for (k in 0 until segs) {
-            val d0 = -55f + k * span + 1.5f
-            val color = when {
-                k >= lit -> c(0xFF2A2622)
-                k == 0 -> RED
-                else -> AMBER
-            }
-            val p = fill(color).apply { if (k < lit) setShadowLayer(6f, 0f, 0f, color) }
-            cv.drawPath(bandSegment(fx, fy, 38f, 52f, d0, d0 + span - 3f), p)
-        }
-        cv.textCentered("E", ax(fx, 46f, -75f), ay(fy, 46f, -75f), textPaint(RED, 17f, SANS_BOLD))
-        cv.textCentered("F", ax(fx, 46f, 75f), ay(fy, 46f, 75f), textPaint(CREAM, 17f, SANS_BOLD))
-        cv.pumpIcon(fx, fy + 4f, 20f, if (s.fuel < 0.15f) AMBER else c(0x66F4F0E6))
+        // Wide screen below the hub.
+        Panels.wide(cv, RectF(398f, 594f, 602f, 658f), s.slots.getValue(Panels.Slot.BOTTOM), s)
     }
 }

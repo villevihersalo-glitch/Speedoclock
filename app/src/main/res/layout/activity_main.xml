@@ -120,7 +120,70 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="SUNRISE &amp; SUNSET"
+            android:text="CHRONO SCREENS"
+            android:letterSpacing="0.15"
+            android:textColor="@color/amber"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Pick what each little screen shows. Tap the middle of the clock to flip it to the moon; tap the hour ring to open this app. Weather needs your location (below)."
+            android:textColor="#B3FFFFFF"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/slot_left"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/slot_center"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/slot_right"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/slot_bottom"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <Button
+            android:id="@+id/fx_pair"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textColor="#FFF4F0E6" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="LOCATION · SUN &amp; WEATHER"
             android:letterSpacing="0.15"
             android:textColor="@color/amber"
             android:textSize="13sp"

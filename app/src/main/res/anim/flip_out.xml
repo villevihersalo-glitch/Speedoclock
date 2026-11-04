@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- First half of a card flip: squeeze to a line. -->
+<scale xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="170"
+    android:fromXScale="1.0" android:toXScale="0.0"
+    android:fromYScale="1.0" android:toYScale="1.0"
+    android:pivotX="50%" android:pivotY="50%"
+    android:interpolator="@android:anim/accelerate_interpolator" />

@@ -11,6 +11,30 @@
         android:scaleType="fitCenter"
         android:importantForAccessibility="no" />
 
+    <!-- Centre dial. Tap flips between the seconds dial and the moon. Sized from code (60% of the face). -->
+    <ViewFlipper
+        android:id="@+id/flip"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center"
+        android:inAnimation="@anim/flip_in"
+        android:outAnimation="@anim/flip_out">
+
+        <ImageView
+            android:id="@+id/dial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <ImageView
+            android:id="@+id/moon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="Moon phase" />
+    </ViewFlipper>
+
     <AnalogClock
         android:id="@+id/needle"
         android:layout_width="match_parent"

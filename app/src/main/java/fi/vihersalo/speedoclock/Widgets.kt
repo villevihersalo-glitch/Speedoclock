@@ -35,12 +35,48 @@ abstract class BaseWidget : AppWidgetProvider() {
 class ChronoWidget : BaseWidget()
 class LcdWidget : BaseWidget()
 
-/** Minute tick + system time changes + boot. */
+/** Minute tick, system time changes, boot, and taps on the Chrono's centre. */
 class TickReceiver : BroadcastReceiver() {
-    override fun onReceive(ctx: Context, intent: Intent) = WidgetUpdater.updateAll(ctx)
+    override fun onReceive(ctx: Context, intent: Intent) {
+        if (intent.action == WidgetUpdater.ACTION_FLIP) {
+            WidgetUpdater.toggleMoon(ctx)
+            WidgetUpdater.updateAll(ctx)
+            return
+        }
+        // Draw from cached data right away, then refresh steps / weather / rates in the background.
+        WidgetUpdater.updateAll(ctx)
+        val pending = goAsync()
+        WidgetUpdater.refreshInBackground(ctx) { pending.finish() }
+    }
 }
 
 object WidgetUpdater {
+    const val ACTION_FLIP = "fi.vihersalo.speedoclock.FLIP"
+    private val refreshing = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    private fun sp(c: Context) = c.getSharedPreferences("speedoclock", Context.MODE_PRIVATE)
+    fun moonShown(c: Context) = sp(c).getBoolean("moon_shown", false)
+    fun toggleMoon(c: Context) = sp(c).edit().putBoolean("moon_shown", !moonShown(c)).apply()
+
+    /** Reads the step counter and refreshes stale feeds off the main thread, then redraws if anything changed. */
+    fun refreshInBackground(context: Context, done: () -> Unit = {}) {
+        val ctx = context.applicationContext
+        if (!refreshing.compareAndSet(false, true)) {
+            done(); return
+        }
+        Thread {
+            try {
+                val usesSteps = Panels.Source.STEPS in Panels.layout(ctx).values
+                val a = usesSteps && Steps.read(ctx)
+                val b = Feeds.refresh(ctx)
+                if (a || b) updateAll(ctx)
+            } catch (_: Exception) {
+            } finally {
+                refreshing.set(false)
+                done()
+            }
+        }.start()
+    }
 
     fun updateAll(context: Context) {
         val ctx = context.applicationContext
@@ -58,9 +94,23 @@ object WidgetUpdater {
     private fun chrono(ctx: Context, mgr: AppWidgetManager, id: Int, st: DashState): RemoteViews {
         val size = sizeDp(mgr, id, SizeF(180f, 180f))
         val density = ctx.resources.displayMetrics.density
-        val px = (min(size.width, size.height) * density).toInt().coerceIn(240, 760)
+        val sideDp = min(size.width, size.height)
+        val px = (sideDp * density).toInt().coerceIn(240, 760)
+        val innerPx = (px * ChronoFace.INNER_FRACTION).toInt()
+        val moon = moonShown(ctx)
         return RemoteViews(ctx.packageName, R.layout.widget_chrono).apply {
-            setImageViewBitmap(R.id.face, ChronoFace.render(st, px))
+            setImageViewBitmap(R.id.face, ChronoFace.renderOuter(st, px))
+            setImageViewBitmap(R.id.dial, ChronoFace.renderInner(st, innerPx))
+            setImageViewBitmap(R.id.moon, MoonFace.render(st.epochMs, st.lat, innerPx))
+            val flipDp = sideDp * ChronoFace.INNER_FRACTION
+            setViewLayoutWidth(R.id.flip, flipDp, TypedValue.COMPLEX_UNIT_DIP)
+            setViewLayoutHeight(R.id.flip, flipDp, TypedValue.COMPLEX_UNIT_DIP)
+            setDisplayedChild(R.id.flip, if (moon) 1 else 0)
+            val hands = if (moon) android.view.View.GONE else android.view.View.VISIBLE
+            setViewVisibility(R.id.needle, hands)
+            setViewVisibility(R.id.pin, hands)
+            // Centre flips to the moon; anywhere else (the hour ring) opens the app.
+            setOnClickPendingIntent(R.id.flip, flipIntent(ctx))
             setOnClickPendingIntent(R.id.root, openApp(ctx))
         }
     }
@@ -92,6 +142,12 @@ object WidgetUpdater {
     private fun openApp(ctx: Context): PendingIntent = PendingIntent.getActivity(
         ctx, 0,
         Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+
+    private fun flipIntent(ctx: Context): PendingIntent = PendingIntent.getBroadcast(
+        ctx, 2,
+        Intent(ctx, TickReceiver::class.java).setAction(ACTION_FLIP),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 

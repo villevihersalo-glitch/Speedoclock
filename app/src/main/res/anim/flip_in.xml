@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Second half: open up from a line, after the out-animation finishes. -->
+<scale xmlns:android="http://schemas.android.com/apk/res/android"
+    android:startOffset="170"
+    android:duration="170"
+    android:fromXScale="0.0" android:toXScale="1.0"
+    android:fromYScale="1.0" android:toYScale="1.0"
+    android:pivotX="50%" android:pivotY="50%"
+    android:interpolator="@android:anim/decelerate_interpolator" />
