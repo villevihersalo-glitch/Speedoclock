@@ -1,0 +1,3 @@
+> Task :app:compileDebugUnitTestKotlin FAILED
+e: file:///home/runner/work/Speedoclock/Speedoclock/app/src/test/java/fi/vihersalo/speedoclock/ScreensTest.kt:137:98 Argument type mismatch: actual type is 'Drawable', but 'Canvas' was expected.
+BUILD FAILED in 40s
