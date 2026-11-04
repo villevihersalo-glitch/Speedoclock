@@ -14,12 +14,11 @@ import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * Third side of the Chrono centre: the solar system seen from above the North Pole, planets where they
  * really are today (heliocentric longitude from mean orbital elements + the biggest eccentricity term,
- * good to a degree or two). Distances are squeezed (square root) so Neptune and Mercury both fit;
+ * good to a degree or two). Orbits are evenly spaced so all eight fit;
  * sizes are not to scale. Earth is lit on the side facing the Sun; the Moon sits in its real phase angle.
  * Drawn on a 600 x 600 canvas.
  */
@@ -53,7 +52,11 @@ object Orrery {
         return ((l + eqCentre) % 360 + 360) % 360
     }
 
-    private fun orbitR(a: Double) = (34 + 205 * sqrt(a / 30.07)).toFloat()
+    /** Evenly spaced orbits, like a brass orrery: positions are true, distances are not. */
+    private fun orbitR(a: Double): Float {
+        val idx = planets.indexOfFirst { it.a == a }
+        return if (idx >= 0) 46f + idx * 31f else 46f + (3f + ((a - 2.2) / 1.1).toFloat() * 0.6f + 0.2f) * 31f
+    }
 
     fun render(epochMs: Long, px: Int): Bitmap {
         val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
